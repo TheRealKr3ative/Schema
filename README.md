@@ -34,7 +34,7 @@ Schema.define("Example", {message = "string!"}, {})
 
 Name: ``"Example"``
 
-``Parameters:`` Use ``!`` to allow a parameter to be nil (like string?).
+Parameters: Use ``!`` to allow a parameter to be nil (like string?).
 Options:
 * invoke: Behaves like a RemoteFunction.
 * reliable: Standard RemoteEvent.
