@@ -27,7 +27,7 @@ First, require the module:
 local Schema = require(path.to.Schema)
 ```
 ---
--- Defining a Control --
+**Defining a Control**
 ```lua
 Schema.define("Example", {message = "string!"}, {})
 ```
