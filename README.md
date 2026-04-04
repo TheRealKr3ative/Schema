@@ -41,7 +41,7 @@ Schema.define("Example", {message = "string!"}, {})
 * reliable: Standard RemoteEvent.
 * unreliable: UnreliableRemoteEvent.
 
-**Example of modificaions
+**Example of modificaions**
 ```lua
     Schema.define("Exmaple", {message = "string!"}, {mode = "invoke})
 ```
