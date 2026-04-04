@@ -83,6 +83,6 @@ Feel free to reach out for suggestions or bug reports:
 
 * Youtube: ``TotallyKr3ative``
 
-* Discord: @TheRealKr3ative / @TotallyNotKr3ative
+* Discord: ``@TheRealKr3ative`` / ``@TotallyNotKr3ative``
 
-* Email: TheRealKr3ative@gmail.com
+* Email: ``TheRealKr3ative@gmail.com``
