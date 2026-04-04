@@ -1,10 +1,10 @@
 # Welcome to Schema
 
 ## Table of Contents
-* [Overview](#overview)
-* [Types](#types)
-* [Usage](#usage)
-* [Contact](#contact)
+* **[Overview](#overview)**
+* **[Types](#types)**
+* **[Usage](#usage)**
+* **[Contact](#contact)**
 
 ---
 
