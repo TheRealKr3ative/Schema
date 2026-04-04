@@ -32,12 +32,18 @@ local Schema = require(path.to.Schema)
 Schema.define("Example", {message = "string!"}, {})
 ```
 
-Name: "Example"
-Parameters: Use ! to allow a parameter to be nil (like string?).
+Name: ``"Example"``
+Parameters: Use ``!`` to allow a parameter to be nil (like string?).
 Options:
 * invoke: Behaves like a RemoteFunction.
 * reliable: Standard RemoteEvent.
 * unreliable: UnreliableRemoteEvent.
+
+*Example of modificaions
+
+```lua
+    Schema.define("Exmaple", {message = "string!"}, {mode = "invoke})
+```
 
 Firing & Listening
 ---
