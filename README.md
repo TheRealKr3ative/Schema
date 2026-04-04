@@ -86,8 +86,6 @@ Feel free to reach out for suggestions or bug reports:
 ---
 * Roblox: ``Kr3ativeKrayon``
 
-* Github: ``TheRealKr3ative``
-
 * Youtube: ``TotallyKr3ative``
 
 * Discord: ``@TheRealKr3ative`` / ``@TotallyNotKr3ative``
