@@ -42,13 +42,13 @@ Options:
 Firing & Listening
 ---
 
-** Firing a control **
+**Firing a control**
 
 ```lua
 Schema.post("Example", {message = "Hello World!"})
 ```
 
-** Listening for a control **
+**Listening for a control**
 
 ```lua
 Schema.subscribe("Example", function(plr, data)
@@ -56,7 +56,7 @@ Schema.subscribe("Example", function(plr, data)
 end)
 ```
 
-** Handling "Invoke" (RemoteFunctions) **
+**Handling "Invoke" (RemoteFunctions)**
 If you use mode = "invoke", you need to use .next() to get return data:
 ```
 Schema.post("Example", {message = "Hello!"}).next(function(data)
@@ -64,7 +64,7 @@ Schema.post("Example", {message = "Hello!"}).next(function(data)
 end)
 ```
 
-** To return data back from a listener, use data.remit(): **
+**To return data back from a listener, use data.remit():**
 
 ```lua
 Schema.subscribe("Example", function(plr, data)
