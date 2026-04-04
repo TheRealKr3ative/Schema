@@ -1,7 +1,7 @@
 # Welcome to Schema
 
 ## Table of Contents
-* <span style="color:red">**[Overview](#overview)**</span>
+* **[Overview](#overview)**
 * **[Types](#types)**
 * **[Usage](#usage)**
 * **[Contact](#contact)**
@@ -93,3 +93,7 @@ Feel free to reach out for suggestions or bug reports:
 * Discord: ``@TheRealKr3ative`` / ``@TotallyNotKr3ative``
 
 * Email: ``TheRealKr3ative@gmail.com``
+
+<span style="color:red">
+Text content
+</span>
