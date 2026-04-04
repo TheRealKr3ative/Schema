@@ -1,7 +1,7 @@
 # Welcome to Schema
 
 ## Table of Contents
-<span style="color:purple">**[Overview](#overview)**</span>
+* <span style="color⚫">**[Overview](#overview)**</span>
 * **[Types](#types)**
 * **[Usage](#usage)**
 * **[Contact](#contact)**
