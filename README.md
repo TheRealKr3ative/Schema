@@ -87,7 +87,7 @@ Feel free to reach out for suggestions or bug reports.
 
 | Platform | Handle |
 |----------|--------|
-| Roblox | ``[`Kr3ativeKrayon`]()`` |
-| YouTube | [`TotallyKr3ative`](https://youtube.com/@totallykr3ative?si=VK7bx7tyxYQ-Nlt-) |
-| Discord | ``[`@TheRealKr3ative`]()`` / [`@TotallyNotKr3ative`](https://discord.com/users/therealkr3ative) |
-| Email | [`TheRealKr3ative@gmail.com`](https://therealkr3ative@gmail.com) |
+| Roblox | [`Kr3ativeKrayon`](https://www.roblox.com/users/1911367519/profile) |
+| YouTube | [`TotallyKr3ative`](https://www.youtube.com/channel/UCpNZQoKVclQ74Pk5GmzdQDA) |
+| X(Twitter)| [`TotallyNotKr3ative`](https://x.com/TheRealKr3ative) |
+| Email | [`TheRealKr3ative@gmail.com`](mailto:TheRealKr3ative@gmail.com) |
