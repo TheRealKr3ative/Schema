@@ -43,7 +43,7 @@ Schema.define("Example", {message = "string!"}, {})
 
 **Example of modificaions**
 ```lua
-    Schema.define("Exmaple", {message = "string!"}, {mode = "invoke})
+    Schema.define("Exmaple", {message = "string!"}, {mode = "invoke"})
 ```
 
 Firing & Listening
