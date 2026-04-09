@@ -89,5 +89,5 @@ Feel free to reach out for suggestions or bug reports.
 |----------|--------|
 | Roblox | ``[`Kr3ativeKrayon`]()`` |
 | YouTube | [`TotallyKr3ative`](https://youtube.com/@totallykr3ative?si=VK7bx7tyxYQ-Nlt-) |
-| Discord | ``[`@TheRealKr3ative`]()`` / ``[`@TotallyNotKr3ative`]()`` |
+| Discord | ``[`@TheRealKr3ative`]()`` / [`@TotallyNotKr3ative`](https://discord.com/users/therealkr3ative) |
 | Email | [`TheRealKr3ative@gmail.com`](https://therealkr3ative@gmail.com) |
