@@ -65,7 +65,7 @@ end)
 
 **Handling "Invoke" (RemoteFunctions)**
 If you use mode = "invoke", you need to use .next() to get return data:
-```
+```lua
 Schema.post("Example", {message = "Hello!"}).next(function(data)
     print(data)
 end)
