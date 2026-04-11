@@ -1,10 +1,10 @@
-local Players    = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local Players     = game:GetService("Players")
+local RunService  = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 
 local IS_SERVER = RunService:IsServer()
 local runtime   = require(script.Parent.Parent.elements.runtime)
-local strict    = require(script.Parent.Parent.elements.strict)
+local hmac      = require(script.Parent.crypto.hmac)
 
 local handshake = {}
 
@@ -18,11 +18,11 @@ export type Context = {
 export type Middleware = (ctx: Context, next: () -> ()) -> ()
 
 export type HandshakeConfig = {
-	maxPayloadSize    : number?,
-	rateLimitCount    : number?,
-	rateLimitWindow   : number?, 
-	floodThreshold    : number?,
-	onFlag            : ((player: Player, reason: string) -> ())?,
+	maxPayloadSize  : number?,
+	rateLimitCount  : number?,
+	rateLimitWindow : number?,
+	floodThreshold  : number?,
+	onFlag          : ((player: Player, reason: string) -> ())?,
 }
 
 local config: HandshakeConfig = {
@@ -33,11 +33,96 @@ local config: HandshakeConfig = {
 	onFlag          = nil,
 }
 
-local tokens: { [Player]: string } = {}
-local hashMaps: { [Player]: { [string]: string } } = {}
-local buckets: { [Player]: { [string]: { count: number, reset: number } } } = {}
-local floodTrackers: { [Player]: { [string]: { posts: number, window: number } } } = {}
+local tokens:       { [Player]: string }                                          = {}
+local sessionKeys:  { [Player]: string }                                          = {}
+local lastSeqs:     { [Player]: number }                                          = {}
+local hashMaps:     { [Player]: { [string]: string } }                            = {}
+local buckets:      { [Player]: { [string]: { count: number, reset: number } } }  = {}
+local floodTrackers:{ [Player]: { [string]: { posts: number, window: number } } } = {}
 local middlewareStack: { Middleware } = {}
+
+local function flag(player: Player, reason: string)
+	warn(`[Schema] flagged {player.Name}: {reason}`)
+	if config.onFlag then
+		task.spawn(config.onFlag, player, reason)
+	end
+end
+
+local function checkRateLimit(player: Player, name: string): boolean
+	local now    = os.clock()
+	local limit  = config.rateLimitCount  :: number
+	local window = config.rateLimitWindow :: number
+
+	if not buckets[player] then buckets[player] = {} end
+
+	local bucket = buckets[player][name]
+	if not bucket or now >= bucket.reset then
+		buckets[player][name] = { count = 1, reset = now + window }
+		return true
+	end
+
+	bucket.count += 1
+	return bucket.count <= limit
+end
+
+local function checkFlood(player: Player, name: string): boolean
+	local now       = os.clock()
+	local threshold = config.floodThreshold :: number
+
+	if not floodTrackers[player] then floodTrackers[player] = {} end
+
+	local tracker = floodTrackers[player][name]
+	if not tracker or now - tracker.window > 0.1 then
+		floodTrackers[player][name] = { posts = 1, window = now }
+		return true
+	end
+
+	tracker.posts += 1
+	return tracker.posts <= threshold
+end
+
+local function sanityCheck(ctx: Context): (boolean, string?)
+	local control = runtime.getControl(ctx.name)
+	if not control then
+		return false, `unknown control "{ctx.name}"`
+	end
+
+	local char = ctx.player.Character
+	if not char or not char.Parent then
+		return false, "player has no valid character"
+	end
+
+	local ok, encoded = pcall(HttpService.JSONEncode, HttpService, ctx.data)
+	if ok and #encoded > (config.maxPayloadSize :: number) then
+		return false, `payload too large ({#encoded} bytes)`
+	end
+
+	for field in ctx.data do
+		if control.shape[field] == nil then
+			return false, `unknown field "{field}" in data`
+		end
+	end
+
+	if not checkFlood(ctx.player, ctx.name) then
+		return false, `flood detected on "{ctx.name}"`
+	end
+
+	return true
+end
+
+local function buildChain(ctx: Context, dispatch: () -> ()): () -> ()
+	local index = #middlewareStack
+
+	local function run(i: number): () -> ()
+		if i == 0 then return dispatch end
+		local mw = middlewareStack[i]
+		return function()
+			mw(ctx, run(i - 1))
+		end
+	end
+
+	return run(index)
+end
 
 function handshake.establish(opts: HandshakeConfig)
 	for k, v in opts do
@@ -50,12 +135,6 @@ function handshake.intercept(middleware: Middleware)
 	table.insert(middlewareStack, middleware)
 end
 
-local function flag(player: Player, reason: string)
-	warn(`[Schema] flagged {player.Name}: {reason}`)
-	if config.onFlag then
-		task.spawn(config.onFlag, player, reason)
-	end
-end
 
 function handshake.generateToken(player: Player): string
 	local token = HttpService:GenerateGUID(false):gsub("-", "")
@@ -63,12 +142,26 @@ function handshake.generateToken(player: Player): string
 	return token
 end
 
+function handshake.generateSessionKey(player: Player): string
+	local key = HttpService:GenerateGUID(false):gsub("-", "")
+		.. HttpService:GenerateGUID(false):gsub("-", "")
+	sessionKeys[player] = key
+	lastSeqs[player]    = -1
+	return key
+end
+
+function handshake.getSessionKey(player: Player): string?
+	return sessionKeys[player]
+end
+
 function handshake.getToken(player: Player): string?
 	return tokens[player]
 end
 
 function handshake.revokeToken(player: Player)
-	tokens[player] = nil
+	tokens[player]      = nil
+	sessionKeys[player] = nil
+	lastSeqs[player]    = nil
 end
 
 function handshake.buildHashMap(player: Player): { [string]: string }
@@ -77,7 +170,7 @@ function handshake.buildHashMap(player: Player): { [string]: string }
 
 	for name in controls do
 		local hash = HttpService:GenerateGUID(false):gsub("-", "")
-		map[hash] = name
+		map[hash]  = name
 	end
 
 	hashMaps[player] = map
@@ -86,6 +179,7 @@ function handshake.buildHashMap(player: Player): { [string]: string }
 	for hash, name in map do
 		inverted[name] = hash
 	end
+
 	return inverted
 end
 
@@ -99,134 +193,56 @@ function handshake.clearHashMap(player: Player)
 	hashMaps[player] = nil
 end
 
-local function checkRateLimit(player: Player, name: string): boolean
-	local now     = os.clock()
-	local limit   = config.rateLimitCount  :: number
-	local window  = config.rateLimitWindow :: number
-
-	if not buckets[player] then
-		buckets[player] = {}
-	end
-
-	local bucket = buckets[player][name]
-	if not bucket or now >= bucket.reset then
-		buckets[player][name] = { count = 1, reset = now + window }
-		return true
-	end
-
-	bucket.count += 1
-	if bucket.count > limit then
-		return false
-	end
-
-	return true
-end
-
-local function checkFlood(player: Player, name: string): boolean
-	local now       = os.clock()
-	local threshold = config.floodThreshold :: number
-
-	if not floodTrackers[player] then
-		floodTrackers[player] = {}
-	end
-
-	local tracker = floodTrackers[player][name]
-	if not tracker or now - tracker.window > 0.1 then
-		floodTrackers[player][name] = { posts = 1, window = now }
-		return true
-	end
-
-	tracker.posts += 1
-	if tracker.posts > threshold then
-		return false
-	end
-
-	return true
-end
-
-local function sanityCheck(ctx: Context): (boolean, string?)
-	local player  = ctx.player
-	local name    = ctx.name
-	local data    = ctx.data
-	local control = runtime.getControl(name)
-
-	if not control then
-		return false, `unknown control "{name}"`
-	end
-
-	local char = player.Character
-	if not char or not char.Parent then
-		return false, "player has no valid character"
-	end
-
-	local ok, encoded = pcall(HttpService.JSONEncode, HttpService, data)
-	if ok then
-		local size = #encoded
-		if size > (config.maxPayloadSize :: number) then
-			return false, `payload too large ({size} bytes)`
-		end
-	end
-
-	local shape = control.shape
-	for field in data do
-		if shape[field] == nil then
-			return false, `unknown field "{field}" in data`
-		end
-	end
-
-	if not checkFlood(player, name) then
-		return false, `flood detected on "{name}"`
-	end
-
-	return true
-end
-
-local function buildChain(ctx: Context, dispatch: () -> ()): () -> ()
-	local index = #middlewareStack
-
-	local function run(i: number): () -> ()
-		if i == 0 then
-			return dispatch
-		end
-		local mw = middlewareStack[i]
-		return function()
-			mw(ctx, run(i - 1))
-		end
-	end
-
-	return run(index)
-end
-
 function handshake.process(
 	player   : Player,
 	hash     : string,
 	token    : string,
+	seq      : number,
+	sig      : string,
 	data     : any,
 	dispatch : (ctx: Context) -> ()
 )
-	local dropped = false
-
-	local ctx: Context = {
-		player = player,
-		name   = "",
-		data   = data,
-		drop   = function()
-			dropped = true
-		end,
-	}
-
-	local expected = tokens[player]
-	if not expected or token ~= expected then
+	local expectedToken = tokens[player]
+	if not expectedToken or token ~= expectedToken then
 		flag(player, "invalid session token")
 		return
 	end
+
+	local lastSeq = lastSeqs[player] or -1
+	if seq <= lastSeq then
+		flag(player, `replay attack detected (seq {seq} <= last {lastSeq})`)
+		return
+	end
+
+	local sessionKey = sessionKeys[player]
+	if not sessionKey then
+		flag(player, "no session key — not bootstrapped")
+		return
+	end
+
+	local payload = tostring(seq) .. hash .. HttpService:JSONEncode(data or {})
+	if not hmac.verify(sessionKey, payload, sig) then
+		flag(player, "HMAC signature invalid")
+		return
+	end
+
+	lastSeqs[player] = seq
 
 	local name = handshake.resolveHash(player, hash)
 	if not name then
 		flag(player, `unresolvable hash "{hash}"`)
 		return
 	end
-	ctx.name = name
+
+	local dropped = false
+	local ctx: Context = {
+		player = player,
+		name   = name,
+		data   = data,
+		drop   = function()
+			dropped = true
+		end,
+	}
 
 	local sane, reason = sanityCheck(ctx)
 	if not sane then
@@ -252,8 +268,8 @@ if IS_SERVER then
 	Players.PlayerRemoving:Connect(function(player)
 		handshake.revokeToken(player)
 		handshake.clearHashMap(player)
-		buckets[player]       = nil
-		floodTrackers[player] = nil
+		buckets[player]        = nil
+		floodTrackers[player]  = nil
 	end)
 end
 
