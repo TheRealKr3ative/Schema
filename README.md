@@ -35,7 +35,7 @@ A secure, type-safe networking library for Roblox Studio that simplifies client-
 
 ## Installation
 
-1. Place the Schema module in your `ReplicatedStorage` or `ServerScriptService`
+1. Place the Schema module in your `ReplicatedStorage`
 2. Require it in your scripts:
 
 ```lua
