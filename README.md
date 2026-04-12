@@ -1,9 +1,6 @@
 # Schema - Roblox Networking Library
 
-![Static Badge](https://img.shields.io/badge/Version-2.0.0-black?style=flat)
-
-![robloxstudio](https://shields.io)
-
+build-v2.0.0--beta-black-?logo=data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz4KPHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmci
 
 A secure, type-safe networking library for Roblox Studio that simplifies client-server communication with built-in validation, handshake security, and multiple transmission modes.
 
