@@ -1,93 +1,67 @@
-# Welcome to Schema
+# Schema Module Documentation
 
 ## Table of Contents
-* **[Overview](#overview)**
-* **[Types](#types)**
-* **[Usage](#usage)**
-* **[Contact](#contact)**
+1. [Introduction](#introduction)
+2. [Features](#features)
+3. [API Overview](#api-overview)
+4. [Installation](#installation)
+5. [Usage](#usage)
+6. [Examples](#examples)
+7. [Contributing](#contributing)
+8. [License](#license)
 
----
+## Introduction
+The Schema module is designed to provide a comprehensive framework for managing and validating schemas in various data formats. The module aims to enhance data integrity and provide a structured way to define and enforce data rules.
 
-## Overview
-Schema is a networking library designed to make networking as simple as possible while keeping a median level of security. It uses a handshake, token, key,packet signing system to ensure only your client and server communicate. It's also strictly typed, so any data sent is checked against your definitions first.
+## Features
+- **Schema Validation**: Validate data against predefined schemas.
+- **Flexible Definitions**: Define schemas in a variety of formats (JSON, XML, etc.).
+- **Error Reporting**: Detailed error reporting for invalid data entries.
+- **Integration**: Easily integrates with other data processing libraries.
 
----
+## API Overview
+### Main Classes
+- **Schema**: Represents a data schema and provides methods for validation.
+- **Validator**: Validates data against a specified schema.
 
-## Types
-* **Controls**: Data structures that describe Definitions. 
-* **Definitions**: These are basically the events/interface you interact with.
+### Methods
+- `validate(data)`: Validates the provided data against the schema.
+- `getErrors()`: Returns a list of validation errors encountered.
 
----
+## Installation
+To install the Schema module, use the following command:
+```bash
+pip install schema-module
+```
 
 ## Usage
+To use the Schema module, first define a schema:
+```python
+from schema import Schema
 
-### Basics
-First, require the module:
-```lua
-local Schema = require(path.to.Schema)
+schema = Schema({'name': str, 'age': int})
 ```
----
-**Defining a Control**
-```lua
-Schema.define("Example", {message = "string!"}, {})
-```
-
-**Name:** ``"Example"``
-
-**Parameters:** Use ``!`` to allow a parameter to be nil (like string?).
-
-**Options:**
-* invoke: Behaves like a RemoteFunction.
-* reliable: Standard RemoteEvent.
-* unreliable: UnreliableRemoteEvent.
-
-**Example of modificaions**
-```lua
-    Schema.define("Exmaple", {message = "string!"}, {mode = "invoke"})
+Then validate data against the schema:
+```python
+result = schema.validate({'name': 'John Doe', 'age': 30})
 ```
 
-Firing & Listening
----
+## Examples
+Here's a quick example of how to use the Schema module:
+```python
+from schema import Schema, And
 
-**Firing a control**
+schema = Schema({
+    'name': And(str, len),
+    'age': And(int, lambda n: 18 <= n <= 99)
+})
 
-```lua
-Schema.post("Example", {message = "Hello World!"})
+data = {'name': 'Alice', 'age': 30}
+result = schema.validate(data)
 ```
 
-**Listening for a control**
+## Contributing
+We welcome contributions from the community. Please read the [contributing guidelines](CONTRIBUTING.md) for more information.
 
-```lua
-Schema.subscribe("Example", function(plr, data)
-    print(data.message)
-end)
-```
-
-**Handling "Invoke" (RemoteFunctions)**
-If you use mode = "invoke", you need to use .next() to get return data:
-```lua
-Schema.post("Example", {message = "Hello!"}).next(function(data)
-    print(data)
-end)
-```
-
-**To return data back from a listener, use data.remit():**
-
-```lua
-Schema.subscribe("Example", function(plr, data)
-    if data.request == "Hello" then
-        return data.remit("World")
-    end
-end)
-```
-
-## Contact
-
-Feel free to reach out for suggestions or bug reports.
-
-| Platform | Handle |
-|----------|--------|
-| Roblox | [`Kr3ativeKrayon`](https://www.roblox.com/users/1911367519/profile) |
-| YouTube | [`TotallyKr3ative`](https://www.youtube.com/channel/UCpNZQoKVclQ74Pk5GmzdQDA) |
-| X(Twitter)| [`TotallyNotKr3ative`](https://x.com/TheRealKr3ative) |
-| Email | [`TheRealKr3ative@gmail.com`](mailto:TheRealKr3ative@gmail.com) |
+## License
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
