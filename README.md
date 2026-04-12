@@ -1,67 +1,62 @@
-# Schema Module Documentation
+# Schema Roblox Networking Library
 
 ## Table of Contents
 1. [Introduction](#introduction)
 2. [Features](#features)
-3. [API Overview](#api-overview)
-4. [Installation](#installation)
-5. [Usage](#usage)
-6. [Examples](#examples)
-7. [Contributing](#contributing)
-8. [License](#license)
+3. [API Methods](#api-methods)
+   - [Method 1](#method-1)
+   - [Method 2](#method-2)
+4. [Types](#types)
+5. [Usage Examples](#usage-examples)
+6. [Conclusion](#conclusion)
 
 ## Introduction
-The Schema module is designed to provide a comprehensive framework for managing and validating schemas in various data formats. The module aims to enhance data integrity and provide a structured way to define and enforce data rules.
+Welcome to the Schema Roblox Networking Library documentation! This library provides a framework for efficient networking in Roblox, designed to streamline communication and data management.
 
 ## Features
-- **Schema Validation**: Validate data against predefined schemas.
-- **Flexible Definitions**: Define schemas in a variety of formats (JSON, XML, etc.).
-- **Error Reporting**: Detailed error reporting for invalid data entries.
-- **Integration**: Easily integrates with other data processing libraries.
+- **Real-Time Communication:** Enable real-time data exchanges between server and clients.
+- **Easy Integration:** Simple to integrate with existing Roblox projects.
+- **Robust Error Handling:** Comprehensive error management capabilities are built-in.
 
-## API Overview
-### Main Classes
-- **Schema**: Represents a data schema and provides methods for validation.
-- **Validator**: Validates data against a specified schema.
+## API Methods
+### Method 1
+#### Description
+This method allows you to connect to a server.
 
-### Methods
-- `validate(data)`: Validates the provided data against the schema.
-- `getErrors()`: Returns a list of validation errors encountered.
+#### Parameters
+- `serverAddress`: The address of the server to connect to.
 
-## Installation
-To install the Schema module, use the following command:
-```bash
-pip install schema-module
+#### Usage
+```lua
+local connection = Schema.connect(serverAddress)
 ```
 
-## Usage
-To use the Schema module, first define a schema:
-```python
-from schema import Schema
+### Method 2
+#### Description
+This method sends data to a specified server.
 
-schema = Schema({'name': str, 'age': int})
-```
-Then validate data against the schema:
-```python
-result = schema.validate({'name': 'John Doe', 'age': 30})
-```
+#### Parameters
+- `data`: The data to be sent.
 
-## Examples
-Here's a quick example of how to use the Schema module:
-```python
-from schema import Schema, And
-
-schema = Schema({
-    'name': And(str, len),
-    'age': And(int, lambda n: 18 <= n <= 99)
-})
-
-data = {'name': 'Alice', 'age': 30}
-result = schema.validate(data)
+#### Usage
+```lua
+Schema.send(data)
 ```
 
-## Contributing
-We welcome contributions from the community. Please read the [contributing guidelines](CONTRIBUTING.md) for more information.
+## Types
+- **Connection**: Represents a connection to a server.
+- **DataPacket**: A structured format for data transmission.
 
-## License
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
+## Usage Examples
+```lua
+local Schema = require(game.ServerScriptService.Schema)
+
+-- Connect to the server
+local connection = Schema.connect("http://example.com")
+
+-- Send data to the server
+Schema.send({ key = "value" })
+```
+
+## Conclusion
+In summary, the Schema Roblox Networking Library is designed to enhance your Roblox projects with seamless networking capabilities. For further details, please refer to the relevant API method documentation.
