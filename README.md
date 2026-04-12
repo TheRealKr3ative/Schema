@@ -317,18 +317,47 @@ Schema.Handshake.establish({
 
 ---
 
-### Schema.Handshake.intercept(middleware)
 
-Adds middleware to intercept and modify handshake packets.
+### `Schema.Handshake.intercept`
+
+The `Schema.Handshake.intercept` function allows you to establish middleware during the handshake process. Middleware can access the context of the handshake, modify data, or terminate the handshake early using the `drop` method.
+
+#### Parameters:
+1. **Context (ctx)**:
+   - `ctx.player`: The player object associated with the handshake.
+   - `ctx.name`: The name of the handshake.
+   - `ctx.data`: The data provided during the handshake.
+   - `ctx.drop`: A function for stopping the handshake.
+
+2. **Next function (`next`)**:
+   - Call it to pass the context to the next middleware or default handler in the chain.
+
+---
+
+#### Example: Rejecting a Packet
 
 ```lua
-Schema.Handshake.intercept(function(packet, player)
-    print("Intercepted packet from " .. player.Name)
-    return packet -- Return modified packet -- packet.drop() or return nil to reject
+Schema.Handshake.intercept(function(ctx, next)
+    -- Access context
+    print("Player:", ctx.player)
+    print("Name:", ctx.name)
+    print("Data:", ctx.data)
+    
+    -- Reject packets meeting certain conditions
+    if ctx.data.shouldDrop then
+        ctx.drop()  -- Packet is dropped
+        return      -- Exit middleware
+    end
+    
+    next()  -- Continue middleware chain
 end)
 ```
 
+If the `drop()` method is invoked, the handshake terminates immediately, and no further processing occurs.
+
+
 ---
+
 
 ### Schema.Handshake.flag(player, reason)
 
