@@ -14,7 +14,7 @@ A secure, type-safe networking library for Roblox Studio that simplifies client-
 * **[API Reference](#api-reference)**
 * **[Types](#types)**
 * **[Transmission Modes](#transmission-modes)**
-* **[Security & Handshake**](#security--handshake)
+* **[Security & Handshake](#security--handshake)**
 * **[Advanced Usage](#advanced-usage)**
 * **[Examples](#examples)**
 * **[Contact](#contact)**
