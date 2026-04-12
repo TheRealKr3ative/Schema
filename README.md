@@ -2,7 +2,7 @@
 
 ![Static Badge](https://img.shields.io/badge/Version-2.0.0-black?style=flat)
 
-![Roblox Studio Badge](https://shields.io)
+![robloxstudio](https://shields.io)
 
 
 A secure, type-safe networking library for Roblox Studio that simplifies client-server communication with built-in validation, handshake security, and multiple transmission modes.
