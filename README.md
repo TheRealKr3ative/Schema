@@ -9,7 +9,7 @@
 ---
 
 ## Overview
-Schema is a networking library designed to make networking as simple as possible while keeping a minimal level of security. It uses a handshake, token, and key system to ensure only your client and server communicate. It's also strictly typed, so any data sent is checked against your definitions first.
+Schema is a networking library designed to make networking as simple as possible while keeping a median level of security. It uses a handshake, token, key,packet signing system to ensure only your client and server communicate. It's also strictly typed, so any data sent is checked against your definitions first.
 
 ---
 
