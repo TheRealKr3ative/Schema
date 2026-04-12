@@ -322,9 +322,22 @@ Schema.Handshake.establish({
 Adds middleware to intercept and modify handshake packets.
 
 ```lua
-Schema.Handshake.intercept(function(packet, player)
+Schema.Handshake.intercept(function(packet, next)
+    local player = packet.player
+    local data = packet.data
+    local name = packet.name
+    local drop = packet.drop
+
     print("Intercepted packet from " .. player.Name)
-    return packet -- Return modified packet or nil to reject
+    if name == "DamagePlayer" then
+        local damage = data.damage
+        
+        if damage >= 999 then -- Block suspicious values
+            drop()
+            return
+        end
+        
+        next() -- Continue processing
 end)
 ```
 
