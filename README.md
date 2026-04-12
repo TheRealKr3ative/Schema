@@ -329,6 +329,7 @@ Schema.Handshake.intercept(function(packet, next)
     local drop = packet.drop
 
     print("Intercepted packet from " .. player.Name)
+
     if name == "DamagePlayer" then
         local damage = data.damage
         
