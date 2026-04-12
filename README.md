@@ -20,13 +20,13 @@ A secure, type-safe networking library for Roblox Studio that simplifies client-
 
 ## Features
 
-- 🔒 **Secure Communication** - HMAC packet signing and token-based authentication
-- ✅ **Type Validation** - Runtime validation of data against defined schemas
-- 🚀 **Multiple Modes** - Reliable, Unreliable, and Invoke (request-response) transmission
-- 🔄 **Flexible Subscription System** - subscribe, like (one-time), and buffer modes
-- 🎯 **Namespace Support** - Organize controls into logical groups with Parties
-- ⚡ **Promise Support** - Built-in Promise integration for async operations
-- 🛡️ **Handshake System** - Secure client-server connection establishment
+-  **Secure Communication** - HMAC packet signing and token-based authentication
+-  **Type Validation** - Runtime validation of data against defined schemas
+-  **Multiple Modes** - Reliable, Unreliable, and Invoke (request-response) transmission
+-  **Flexible Subscription System** - subscribe, like (one-time), and buffer modes
+-  **Namespace Support** - Organize controls into logical groups with Parties
+-  **Promise Support** - Built-in Promise integration for async operations
+-  **Handshake System** - Secure client-server connection establishment
 
 ---
 
@@ -324,7 +324,7 @@ Adds middleware to intercept and modify handshake packets.
 ```lua
 Schema.Handshake.intercept(function(packet, player)
     print("Intercepted packet from " .. player.Name)
-    return packet -- Return modified packet or nil to reject
+    return packet -- Return modified packet -- packet.drop() or return nil to reject
 end)
 ```
 
