@@ -338,6 +338,7 @@ Schema.Handshake.intercept(function(packet, next)
         end
         
         next() -- Continue processing
+    end
 end)
 ```
 
