@@ -498,7 +498,7 @@ Schema.define("GetPlayerStats", {playerName = "string!"}, {
 Schema.subscribe("GetPlayerStats", function(player, data)
     local returns = nil
     if data.playerName == "John Pork" then
-        returns = "Nope
+        returns = "Nope"
     end
     if not returns then
         returns = {Level = 200, Mana = 500, XP = 240}
