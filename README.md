@@ -106,7 +106,7 @@ Schema.post("PlayerGreeting", {
 Controls are named communication channels with defined data shapes and transmission modes. They must be defined before use.
 
 ### Shapes
-A shape is a table defining the expected data structure. Values ending with `!` are required; values without are optional.
+A shape is a table defining the expected data structure. Values ending with `!` are not required and can be nil; values without are mandatory.
 
 ```lua
 {
