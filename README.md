@@ -474,6 +474,7 @@ Schema.define("PlayerPosition", {x = "number!", y = "number!"}, {mode = "unrelia
 ### Invoke
 RemoteFunction-like behavior. Waits for a response from the recipient.
 
+**Client**
 ```lua
 Schema.define("GetPlayerStats", {playerName = "string!"}, {
     mode = "invoke",
@@ -485,6 +486,27 @@ Schema.post("GetPlayerStats", {playerName = "Player1"}).next(function(stats)
     print("Stats: " .. stats.level)
 end)
 ```
+
+**Server**
+```lua
+Schema.define("GetPlayerStats", {playerName = "string!"}, {
+    mode = "invoke",
+    timeout = 5,
+    retries = 2
+})
+
+Schema.subscribe("GetPlayerStats", function(player, data)
+    local returns = nil
+    if data.playerName == "John Pork" then
+        returns = "Nope
+    end
+    if not returns then
+        returns = {Level = 200, Mana = 500, XP = 240}
+    end
+    data.remit(returns) -- returns stats if the player is not John Pork
+end)
+```
+
 
 **Use for:** Request-response patterns, asking for data, calling remote functions
 
