@@ -110,9 +110,9 @@ A shape is a table defining the expected data structure. Values ending with `!` 
 
 ```lua
 {
-    name = "string!",      -- Required string
-    age = "number",        -- Optional number
-    active = "boolean!"    -- Required boolean
+    name = "string!",      -- (!) -- can be nil == (string? / string | nil)
+    age = "number",        -- Required number
+    active = "boolean!"    -- Unrequired boolean
 }
 ```
 
