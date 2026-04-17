@@ -1,6 +1,5 @@
 # Schema Structure
 ---
-
 Schema.lua/
 ├── elements/
 │   ├── runtime.lua
