@@ -673,4 +673,22 @@ function Schema.Type.Tuple(...: string)
 	return "Tuple(" .. table.concat(args, ",") .. ")" .. (nullable and "!" or "")
 end
 
+function Schema.Type.union(...: string)
+	local args     = { ... }
+	local nullable = false
+	if typeof(args[#args]) == "boolean" then
+		nullable = table.remove(args) :: any
+	end
+	return table.concat(args, "|") .. (nullable and "!" or "")
+end
+
+function Schema.Type.intersect(...: string)
+	local args     = { ... }
+	local nullable = false
+	if typeof(args[#args]) == "boolean" then
+		nullable = table.remove(args) :: any
+	end
+	return table.concat(args, "&") .. (nullable and "!" or "")
+end
+
 return Schema
