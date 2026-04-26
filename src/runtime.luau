@@ -1,161 +1,223 @@
-local runtime = {}
+local strict = {}
 
-runtime.activeConnections = {} :: { [string]: { activeConnection } }
-runtime.activePends       = {} :: { [string]: any }
-runtime.controls          = {} :: { [string]: any }
+export type Shape    = { [string]: string }
+export type Checker  = (value: any) -> (boolean, string?)
 
-export type activeConnection = {
-	id         : number,
-	timestamp  : number,
-	connection : RBXScriptConnection | ((...any) -> any),
-	destroy    : () -> (),
+local CHECKERS: { [string]: (any) -> boolean } = {
+	string         = function(v) return typeof(v) == "string"         end,
+	number         = function(v) return typeof(v) == "number"         end,
+	int            = function(v) return typeof(v) == "number" and v == math.floor(v) end,
+	float          = function(v) return typeof(v) == "number"         end,
+	boolean        = function(v) return typeof(v) == "boolean"        end,
+	table          = function(v) return typeof(v) == "table"          end,
+	any            = function()  return true                          end,
+
+	Vector3        = function(v) return typeof(v) == "Vector3"        end,
+	Vector2        = function(v) return typeof(v) == "Vector2"        end,
+	CFrame         = function(v) return typeof(v) == "CFrame"         end,
+	Color3         = function(v) return typeof(v) == "Color3"         end,
+	Instance       = function(v) return typeof(v) == "Instance"       end,
+	UDim2          = function(v) return typeof(v) == "UDim2"          end,
+	UDim           = function(v) return typeof(v) == "UDim"           end,
+	EnumItem       = function(v) return typeof(v) == "EnumItem"       end,
+	BrickColor     = function(v) return typeof(v) == "BrickColor"     end,
+	NumberSequence = function(v) return typeof(v) == "NumberSequence" end,
+	ColorSequence  = function(v) return typeof(v) == "ColorSequence"  end,
+	NumberRange    = function(v) return typeof(v) == "NumberRange"    end,
+	Rect           = function(v) return typeof(v) == "Rect"           end,
+	Region3        = function(v) return typeof(v) == "Region3"        end,
+	Ray            = function(v) return typeof(v) == "Ray"            end,
+	TweenInfo      = function(v) return typeof(v) == "TweenInfo"      end,
+	Vector3int16   = function(v) return typeof(v) == "Vector3int16"   end,
+	Vector2int16   = function(v) return typeof(v) == "Vector2int16"   end,
 }
 
-local function assertName(name: string)
-	assert(typeof(name) == "string" and #name > 0, "[Schema] name must be a non-empty string")
-end
+local function splitOn(s: string, char: string): { string }?
+	local parts = {}
+	local depth = 0
+	local cur   = ""
+	local found = false
 
-local nextId = 0
-local function genId(): number
-	nextId += 1
-	return nextId
-end
-
-function runtime.registerConnection(name: string, connection: ((...any) -> any)): number
-	assertName(name)
-
-	if not runtime.activeConnections[name] then
-		runtime.activeConnections[name] = {}
+	for i = 1, #s do
+		local c = s:sub(i, i)
+		if c == "(" then
+			depth += 1
+			cur ..= c
+		elseif c == ")" then
+			depth -= 1
+			cur ..= c
+		elseif c == char and depth == 0 then
+			found = true
+			table.insert(parts, cur:match("^%s*(.-)%s*$"))
+			cur = ""
+		else
+			cur ..= c
+		end
 	end
 
-	local id = genId()
+	if #cur > 0 then
+		table.insert(parts, cur:match("^%s*(.-)%s*$"))
+	end
 
-	local entry: activeConnection = {
-		id         = id,
-		timestamp  = os.clock(),
-		connection = connection,
-		destroy    = function()
-			if typeof(connection) == "RBXScriptConnection" then
-				(connection :: RBXScriptConnection):Disconnect()
+	return found and parts or nil
+end
+
+local function splitArgs(inner: string): { string }
+	return splitOn(inner, ",") or { inner }
+end
+
+local parseType: (typeStr: string) -> Checker
+
+parseType = function(typeStr: string): Checker
+	local nullable = typeStr:sub(-1) == "!"
+	local base     = nullable and typeStr:sub(1, -2) or typeStr
+
+	local function wrap(checker: Checker): Checker
+		if not nullable then return checker end
+		return function(v)
+			if v == nil then return true end
+			return checker(v)
+		end
+	end
+
+	local unionParts = splitOn(base, "|")
+	if unionParts then
+		local checkers = {}
+		for _, t in unionParts do
+			table.insert(checkers, parseType(t))
+		end
+		return wrap(function(v)
+			for _, checker in checkers do
+				local ok = checker(v)
+				if ok then return true end
 			end
-		end,
-	}
+			return false, `expected ({base}), got {typeof(v)}`
+		end)
+	end
 
-	table.insert(runtime.activeConnections[name], entry)
-	return id
+	local intersectParts = splitOn(base, "&")
+	if intersectParts then
+		local checkers = {}
+		for _, t in intersectParts do
+			table.insert(checkers, parseType(t))
+		end
+		return wrap(function(v)
+			for _, checker in checkers do
+				local ok, err = checker(v)
+				if not ok then
+					return false, `intersection failed [{base}]: {err}`
+				end
+			end
+			return true
+		end)
+	end
+
+	local arrayInner = base:match("^Array%((.+)%)$")
+	if arrayInner then
+		local inner = parseType(arrayInner)
+		return wrap(function(v)
+			if typeof(v) ~= "table" then
+				return false, `expected Array, got {typeof(v)}`
+			end
+			for i, item in ipairs(v) do
+				local ok, err = inner(item)
+				if not ok then
+					return false, `Array[{i}]: {err}`
+				end
+			end
+			return true
+		end)
+	end
+
+	local dictInner = base:match("^Dict%((.+)%)$")
+	if dictInner then
+		local args = splitArgs(dictInner)
+		assert(#args == 2, `[Schema] Dict requires exactly 2 type args, got {#args}`)
+		local keyCheck = parseType(args[1])
+		local valCheck = parseType(args[2])
+		return wrap(function(v)
+			if typeof(v) ~= "table" then
+				return false, `expected Dict, got {typeof(v)}`
+			end
+			for k, val in pairs(v) do
+				local ok, err = keyCheck(k)
+				if not ok then
+					return false, `Dict key: {err}`
+				end
+				ok, err = valCheck(val)
+				if not ok then
+					return false, `Dict value [{tostring(k)}]: {err}`
+				end
+			end
+			return true
+		end)
+	end
+
+	local tupleInner = base:match("^Tuple%((.+)%)$")
+	if tupleInner then
+		local args     = splitArgs(tupleInner)
+		local checkers = {}
+		for _, t in args do
+			table.insert(checkers, parseType(t))
+		end
+		return wrap(function(v)
+			if typeof(v) ~= "table" then
+				return false, `expected Tuple, got {typeof(v)}`
+			end
+			for i, checker in checkers do
+				local ok, err = checker(v[i])
+				if not ok then
+					return false, `Tuple[{i}]: {err}`
+				end
+			end
+			return true
+		end)
+	end
+
+	local checker = CHECKERS[base]
+	assert(checker ~= nil, `[Schema] unknown type "{base}"`)
+
+	return wrap(function(v)
+		if not checker(v) then
+			return false, `expected {base}, got {typeof(v)}`
+		end
+		return true
+	end)
 end
 
-function runtime.removeConnection(name: string, id: number)
-	assertName(name)
+function strict.validate(data: any, shape: Shape): (boolean, string?)
+	if typeof(data) ~= "table" then
+		return false, "[Schema] data must be a table"
+	end
 
-	local entries = runtime.activeConnections[name]
-	if not entries then return end
+	for field, typeStr in shape do
+		local nullable = typeStr:sub(-1) == "!"
+		local value    = data[field]
 
-	for i, entry in entries do
-		if entry.id == id then
-			entry.destroy()
-			table.remove(entries, i)
-			return
+		if value == nil then
+			if not nullable then
+				return false, `[Schema] missing required field "{field}"`
+			end
+			continue
+		end
+
+		local checker    = parseType(typeStr)
+		local ok, err    = checker(value)
+		if not ok then
+			return false, `[Schema] field "{field}": {err}`
 		end
 	end
+
+	return true
 end
 
-function runtime.getConnections(name: string): { activeConnection }?
-	assertName(name)
-	return runtime.activeConnections[name]
+function strict.assertShape(data: any, shape: Shape)
+	local ok, err = strict.validate(data, shape)
+	assert(ok, err)
 end
 
-function runtime.destroyConnection(name: string)
-	assertName(name)
-
-	local entries = runtime.activeConnections[name]
-	if not entries then return end
-
-	for _, entry in entries do
-		entry.destroy()
-	end
-
-	runtime.activeConnections[name] = nil
+function strict.parseType(typeStr: string): Checker
+	return parseType(typeStr)
 end
 
-function runtime.destroyAllConnections()
-	for _, entries in runtime.activeConnections do
-		for _, entry in entries do
-			entry.destroy()
-		end
-	end
-	table.clear(runtime.activeConnections)
-end
-
-function runtime.registerPend(name: string, pend: any)
-	assertName(name)
-	runtime.activePends[name] = pend
-end
-
-function runtime.getPend(name: string): any?
-	assertName(name)
-	return runtime.activePends[name]
-end
-
-function runtime.resolvePend(name: string): any?
-	assertName(name)
-
-	local pend = runtime.activePends[name]
-	if not pend then return nil end
-
-	runtime.activePends[name] = nil
-	return pend
-end
-
-function runtime.destroyAllPends()
-	for _, pend in runtime.activePends do
-		if typeof(pend) == "table" and typeof(pend.reject) == "function" then
-			pend:reject("[Schema] destroyed")
-		end
-	end
-	table.clear(runtime.activePends)
-end
-
-function runtime.registerControl(name: string, control: any)
-	assertName(name)
-	runtime.controls[name] = control
-end
-
-function runtime.getControl(name: string): any?
-	assertName(name)
-	return runtime.controls[name]
-end
-
-function runtime.getControls(): { [string]: any }
-	return runtime.controls
-end
-
-function runtime.destroyControl(name: string)
-	assertName(name)
-
-	local control = runtime.controls[name]
-	if not control then return end
-
-	if typeof(control) == "table" and typeof(control.Destroy) == "function" then
-		control:Destroy()
-	end
-
-	runtime.controls[name] = nil
-end
-
-function runtime.destroyAllControls()
-	for _, control in runtime.controls do
-		if typeof(control) == "table" and typeof(control.Destroy) == "function" then
-			control:Destroy()
-		end
-	end
-	table.clear(runtime.controls)
-end
-
-function runtime.destroyAll()
-	runtime.destroyAllConnections()
-	runtime.destroyAllPends()
-	runtime.destroyAllControls()
-end
-
-return runtime
+return strict
