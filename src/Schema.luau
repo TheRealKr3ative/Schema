@@ -11,7 +11,7 @@ local handshake = require(script.net.handshake)
 local Promise   = require(script.net.promise)
 local hmac      = require(script.net.crypto.hmac)
 
-local Schema = {Handshake = {}, Events = events, Promise = Promise}
+local Schema = {Handshake = {}, Events = events, Promise = Promise, Type = {}}
 
 export type Shape          = strict.Shape
 export type ControlOptions = {
@@ -136,7 +136,7 @@ local function dispatchInvokeDirect(name: string, sender: Player?, data: { [stri
 		returnValue = value
 		returned    = true
 	end
-
+	
 	connections[1].connection(sender, injectedData)
 
 	if not returned then
@@ -626,6 +626,51 @@ end
 
 function Schema.destroy()
 	runtime.destroyAll()
+end
+
+-- Luau primitives
+function Schema.Type.string(nullable: boolean?)  return "string"  .. (nullable and "!" or "") end
+function Schema.Type.number(nullable: boolean?)  return "number"  .. (nullable and "!" or "") end
+function Schema.Type.float(nullable: boolean?)   return "float"   .. (nullable and "!" or "") end
+function Schema.Type.int(nullable: boolean?)     return "int"     .. (nullable and "!" or "") end
+function Schema.Type.boolean(nullable: boolean?) return "boolean" .. (nullable and "!" or "") end
+function Schema.Type.table(nullable: boolean?)   return "table"   .. (nullable and "!" or "") end
+function Schema.Type.any(nullable: boolean?)     return "any"     .. (nullable and "!" or "") end
+
+function Schema.Type.Vector2(nullable: boolean?)       return "Vector2"       .. (nullable and "!" or "") end
+function Schema.Type.Vector3(nullable: boolean?)       return "Vector3"       .. (nullable and "!" or "") end
+function Schema.Type.Vector2int16(nullable: boolean?)  return "Vector2int16"  .. (nullable and "!" or "") end
+function Schema.Type.Vector3int16(nullable: boolean?)  return "Vector3int16"  .. (nullable and "!" or "") end
+function Schema.Type.CFrame(nullable: boolean?)        return "CFrame"        .. (nullable and "!" or "") end
+function Schema.Type.Color3(nullable: boolean?)        return "Color3"        .. (nullable and "!" or "") end
+function Schema.Type.UDim(nullable: boolean?)          return "UDim"          .. (nullable and "!" or "") end
+function Schema.Type.UDim2(nullable: boolean?)         return "UDim2"         .. (nullable and "!" or "") end
+function Schema.Type.BrickColor(nullable: boolean?)    return "BrickColor"    .. (nullable and "!" or "") end
+function Schema.Type.Rect(nullable: boolean?)          return "Rect"          .. (nullable and "!" or "") end
+function Schema.Type.Ray(nullable: boolean?)           return "Ray"           .. (nullable and "!" or "") end
+function Schema.Type.Region3(nullable: boolean?)       return "Region3"       .. (nullable and "!" or "") end
+function Schema.Type.TweenInfo(nullable: boolean?)     return "TweenInfo"     .. (nullable and "!" or "") end
+function Schema.Type.NumberRange(nullable: boolean?)   return "NumberRange"   .. (nullable and "!" or "") end
+function Schema.Type.ColorSequence(nullable: boolean?) return "ColorSequence" .. (nullable and "!" or "") end
+function Schema.Type.NumberSequence(nullable: boolean?) return "NumberSequence" .. (nullable and "!" or "") end
+function Schema.Type.EnumItem(nullable: boolean?)      return "EnumItem"      .. (nullable and "!" or "") end
+function Schema.Type.Instance(nullable: boolean?)      return "Instance"      .. (nullable and "!" or "") end
+
+function Schema.Type.Array(innerType: string, nullable: boolean?)
+	return "Array(" .. innerType .. ")" .. (nullable and "!" or "")
+end
+
+function Schema.Type.Dict(keyType: string, valueType: string, nullable: boolean?)
+	return "Dict(" .. keyType .. "," .. valueType .. ")" .. (nullable and "!" or "")
+end
+
+function Schema.Type.Tuple(...: string)
+	local args = { ... }
+	local nullable = false
+	if typeof(args[#args]) == "boolean" then
+		nullable = table.remove(args) :: any
+	end
+	return "Tuple(" .. table.concat(args, ",") .. ")" .. (nullable and "!" or "")
 end
 
 return Schema
