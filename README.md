@@ -1,4 +1,3 @@
-[![Alt Text](https://img.shields.io/badge/click-me--blue?style=for-the-badge)](https://youtube.com) 
 
 # Schema — Roblox Networking Library
 
