@@ -1,7 +1,7 @@
 
 # Schema — Roblox Networking Library
 
-[![Static Badge](https://img.shields.io/badge/build-v2.0.0--beta-black)](https://youtube.com)
+[![Static Badge](https://img.shields.io/badge/build-v2.1.0--beta-black)](https://github.com/TheRealKr3ative/Schema/releases/tag/v2.1.0-beta)
 ![Static Badge](https://img.shields.io/badge/stability-stable-green)
 
 A type-safe networking library for Roblox. Clean API for defining channels, validating payloads, and handling client-server communication across reliable, unreliable, and invoke modes.
