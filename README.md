@@ -1,5 +1,5 @@
 
-# Schema — Roblox Networking Library
+# Schema -- Roblox Networking Library
 
 [![Static Badge](https://img.shields.io/badge/build-v2.1.0--beta-black)](https://github.com/TheRealKr3ative/Schema/releases/tag/v2.1.0-beta)
 ![Static Badge](https://img.shields.io/badge/stability-stable-green)
